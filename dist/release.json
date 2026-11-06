@@ -1,12 +1,12 @@
 {
-  "version": "2.2.0",
-  "cacheVersion": "v4",
-  "title": "Base real com origem documentada",
+  "version": "2.3.0",
+  "cacheVersion": "v5",
+  "title": "Bancada de leitura e ferramentas da oficina",
   "changes": [
-    "Novas instalações começam vazias, sem medições ou estatísticas fictícias.",
-    "Base real com proveniência, exclusão de duplicatas e estatísticas locais por grupos compatíveis.",
-    "Exemplos antigos são arquivados no aparelho antes de saírem da base ativa; medições existentes são preservadas.",
-    "Repositório conectado identificado sem dataset disponível; nenhuma medição foi inventada ou importada dessa origem.",
-    "Atualização pelo mesmo endereço e ícone, preservando a identidade do aplicativo instalado."
+    "Inspeção local de arquivos BIN, prévia hexadecimal e recortes numéricos em 2D/3D, sem edição ou gravação.",
+    "Sensores OBD-II documentados em consulta separada, com disponibilidade e origem explícitas.",
+    "Relatório de compatibilidade e licenças dos seis projetos avaliados, sem conectores presumidos.",
+    "Interface de oficina mais compacta, com a paleta da Auto Elétrica Doidinho.",
+    "Atualização no mesmo endereço e ícone, adiada durante coletas, arquivos ou relatórios pendentes."
   ]
 }

@@ -90,7 +90,7 @@ function chart(samples) {
     left + ((value - first) / (last - first)) * (width - left - right);
   const y = (value) => bottom - (value / 100) * (bottom - top);
   const lines = [
-    ["pedal_pct", "#c76500"],
+    ["pedal_pct", "#FF8A00"],
     ["throttle_pct", "#242424"],
     ["rpm", "#808080"],
   ]
@@ -108,7 +108,7 @@ function chart(samples) {
   for (let tick = 0; tick <= 100; tick += 20) {
     ticks += `<line x1="${left}" x2="${width - right}" y1="${y(tick)}" y2="${y(tick)}" stroke="#e5ebef"/><text x="45" y="${y(tick) + 4}" text-anchor="end">${tick}%</text><text x="950" y="${y(tick) + 4}">${Math.round((tick / 100) * maximumRpm)}</text>`;
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 330" role="img" aria-label="Pedal e borboleta em porcentagem no eixo esquerdo e RPM no eixo direito; tempo em segundos"><rect width="100%" height="100%" fill="#f6f9fb"/>${ticks}<text x="950" y="15">RPM</text>${lines}<text x="55" y="310">${number(first)} s</text><text x="890" y="310">${number(last)} s</text><text x="470" y="325">Tempo (s)</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 330" role="img" aria-label="Pedal e borboleta em porcentagem no eixo esquerdo e RPM no eixo direito; tempo em segundos"><rect width="100%" height="100%" fill="#FFFFFF"/>${ticks}<text x="950" y="15">RPM</text>${lines}<text x="55" y="310">${number(first)} s</text><text x="890" y="310">${number(last)} s</text><text x="470" y="325">Tempo (s)</text></svg>`;
 }
 
 export function reportHtml(recording) {
@@ -142,7 +142,7 @@ export function reportHtml(recording) {
   <div class="label">AUTO ECU LAB — Auto Elétrica Doidinho · RELATÓRIO EXPLORATÓRIO</div><h1>${escape(recording.title)}</h1><p><strong>Modo de operação: ${escape(OPERATION_MODES[payload.operation_mode].label)}</strong></p><p class="notice">${escape(originNotice)}</p><p class="muted">Ensaio ${escape(recording.id)} · Gerado em ${escape(localDate(payload.generated_at_utc))} · v${payload.version}</p>
   ${recording.isDemo ? '<p class="notice"><strong>DADOS INTEIRAMENTE FICTÍCIOS.</strong> Não representam medições reais de uma Fiat Strada ou de qualquer ECU.</p>' : ""}
   <h2>Veículo e identificação da ECU</h2><p>${escape(vehicle.brand)} ${escape(vehicle.model)} ${escape(vehicle.year)} · Motor ${escape(vehicle.engine)} · ${escape(vehicle.plate || "Placa não informada")}</p><p>ECU: ${escape(ecu.identification || "Não confirmada")} · Fabricante: ${escape(ecu.manufacturer || "Não informado")}<br>HW: ${escape(ecu.hardware || "—")} · SW: ${escape(ecu.software || "—")} · Origem: ${escape(ecu.source || "Não confirmada")}</p>
-  <h2>Aquisição e resultados</h2><p>${result.sample_count} amostras · Duração ${number(result.duration_s)} s · Intervalo mediano ${number(result.interval_s, 3)} s (mín. ${number(result.min_interval_s, 3)}, máx. ${number(result.max_interval_s, 3)})</p><p>Medianas de atraso: borboleta ${number(result.median_throttle_delay_s, 3)} s · RPM ${number(result.median_rpm_delay_s, 3)} s. “—” significa que não há medição observável.</p>${chart(recording.samples)}<p class="legend"><span style="color:#0b8a73">━ Pedal (%)</span> · <span style="color:#ba7813">━ Borboleta (%)</span> · <span style="color:#7c78b2">━ RPM</span></p>
+  <h2>Aquisição e resultados</h2><p>${result.sample_count} amostras · Duração ${number(result.duration_s)} s · Intervalo mediano ${number(result.interval_s, 3)} s (mín. ${number(result.min_interval_s, 3)}, máx. ${number(result.max_interval_s, 3)})</p><p>Medianas de atraso: borboleta ${number(result.median_throttle_delay_s, 3)} s · RPM ${number(result.median_rpm_delay_s, 3)} s. “—” significa que não há medição observável.</p>${chart(recording.samples)}<p class="legend"><span style="color:#FF8A00">━ Pedal (%)</span> · <span style="color:#242424">━ Borboleta (%)</span> · <span style="color:#808080">━ RPM</span></p>
   <div class="table-wrap"><table><thead><tr><th>Evento</th><th>Início (s)</th><th>Fim (s)</th><th>Subida (pp)</th><th>Atraso borboleta (s)</th><th>Atraso RPM (s)</th><th>Qualidade</th></tr></thead><tbody>${events || '<tr><td colspan="7">Nenhum evento pelos critérios atuais.</td></tr>'}</tbody></table></div>
   <h2>Observações e possíveis falhas</h2>${findings || "<p>Sem indícios pelos critérios aplicados. Isso não confirma ausência de falhas.</p>"}
   <h2>Método e parâmetros</h2><p>${escape(METHOD)}</p><p>Subida mínima do pedal ${number(result.config.pedal_rise_pp, 1)} pp · Resposta da borboleta ${number(result.config.throttle_rise_pp, 1)} pp · Resposta do motor ${number(result.config.rpm_rise, 0)} RPM · Janela máxima ${number(result.config.response_window_s, 2)} s · Limite exploratório ${number(result.config.slow_threshold_s, 2)} s.</p>

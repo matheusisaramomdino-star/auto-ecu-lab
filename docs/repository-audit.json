@@ -1,0 +1,185 @@
+{
+  "audited_at": "2026-11-06",
+  "incorporated_third_party_code": false,
+  "repos": [
+    {
+      "name": "flexadecimal/serpentine",
+      "url": "https://github.com/flexadecimal/serpentine",
+      "revision": "88ac390e3ed63b6444f8f1d6408bbffbc459d5ac",
+      "license": "Sem licença explícita identificada nesta revisão",
+      "licenseEvidence": [
+        "Árvore recursiva sem LICENSE, COPYING ou NOTICE; metadados GitHub license:null.",
+        "README descreve ecushark/browser/XDF/ADX, mas não contém concessão de licença.",
+        "Cabeçalhos dos arquivos Python inspecionados não identificam uma licença."
+      ],
+      "platform": "Python 3.10; lark/lxml/numpy/toml/Pint/pynverse; núcleo XDF e notebook. README de início ainda usa todo.py.",
+      "findings": [
+        "README lista edição XDF como funcionalidade; xdf_parse.py diz TODO para interpretar ADX.",
+        "Xdf.from_path abre o BIN em r+b; testes de exemplo aplicam patches/escritas. Não satisfaz isolamento de leitura sem adaptação.",
+        "Há arquivos BIN/XDF/ADX de veículos e origem mencionada M44/OpenEEC, sem licenças individuais verificadas; não são dados de scanner nem cobertura da frota AUTO ECU LAB.",
+        "Dependências usam '*' no Pipfile; não foi encontrado Pipfile.lock na árvore. Nenhum transporte USB/BLE/TCP ou scanner operacional demonstrado nos arquivos examinados.",
+        "Não há submódulo Git na árvore inspecionada."
+      ],
+      "decision": "Não incorporar código, schemas ou dumps. Usar somente como referência conceitual de separação entre definição e bytes; implementar inspeção BIN original, local, imutável, com endianness/tipo/offset explícitos. Futuro XDF depende de formato documentado, licença/autorizações e corpus de teste.",
+      "sourceLinks": [
+        "https://github.com/flexadecimal/serpentine/tree/88ac390e3ed63b6444f8f1d6408bbffbc459d5ac",
+        "https://github.com/flexadecimal/serpentine/blob/88ac390e3ed63b6444f8f1d6408bbffbc459d5ac/README.md",
+        "https://github.com/flexadecimal/serpentine/blob/88ac390e3ed63b6444f8f1d6408bbffbc459d5ac/Pipfile",
+        "https://github.com/flexadecimal/serpentine/blob/88ac390e3ed63b6444f8f1d6408bbffbc459d5ac/core/entity/Xdf.py",
+        "https://github.com/flexadecimal/serpentine/blob/88ac390e3ed63b6444f8f1d6408bbffbc459d5ac/xdf_parse.py"
+      ]
+    },
+    {
+      "name": "bad-antics/blackflag-ecu",
+      "url": "https://github.com/bad-antics/blackflag-ecu",
+      "revision": "ac68bf5e2fcb4700d9b0baf4d6a009c923aaed46",
+      "license": "MIT no arquivo LICENSE",
+      "licenseEvidence": [
+        "LICENSE contém texto MIT e README declara MIT; não foi identificado conflito entre esses dois avisos.",
+        "A concessão MIT dos materiais do repositório não demonstra quais dependências/licenças estão dentro do executável LFS nem autoriza automaticamente DLLs de fabricantes."
+      ],
+      "platform": "README: Windows10/11 x64, C#/WPF/.NET8, J2534. A árvore auditada não contém fonte .cs, .sln ou .csproj; EXE é ponteiro Git LFS.",
+      "findings": [
+        "BlackFlag.exe versionado é um ponteiro de134bytes para objeto LFS de163118325bytes; o executável não foi baixado/executado.",
+        "Não há fonte auditável da implementação anunciada de OBD-II, identificação, sensores, J2534, CAN, K-Line, J1850 ou gravação.",
+        "FAQ afirma suporte Linux nativo/SocketCAN e macOS; README se apresenta como Windows nativo. Inconsistência impede prometer compatibilidade.",
+        "CONTRIBUTING pede abrir BlackFlag.sln, inexistente na árvore inspecionada.",
+        "README anuncia desbloqueio de ECU, flash, alteração de limites e limpeza de DTC: funcionalidades fora do escopo do AUTO ECU LAB.",
+        "JSONs de veículos são catálogos; não comprovam cobertura de ECUs, medições reais ou estatísticas.",
+        "O diagrama J2534 é documentação descritiva, não um SDK/driver validado. Nenhum submódulo Git identificado."
+      ],
+      "decision": "Não integrar o executável nem declarar suporte com base em tabelas/promessas. Manter OBD-II próprio de leitura com ELM327 documentado; J2534 somente após driver/API autorizados, arquitetura comprovada e testes. Nenhuma rotina de desbloqueio, flash, limpeza DTC ou alteração de limites será implementada.",
+      "sourceLinks": [
+        "https://github.com/bad-antics/blackflag-ecu/tree/ac68bf5e2fcb4700d9b0baf4d6a009c923aaed46",
+        "https://github.com/bad-antics/blackflag-ecu/blob/ac68bf5e2fcb4700d9b0baf4d6a009c923aaed46/LICENSE",
+        "https://github.com/bad-antics/blackflag-ecu/blob/ac68bf5e2fcb4700d9b0baf4d6a009c923aaed46/README.md",
+        "https://github.com/bad-antics/blackflag-ecu/blob/ac68bf5e2fcb4700d9b0baf4d6a009c923aaed46/BlackFlag.exe",
+        "https://github.com/bad-antics/blackflag-ecu/blob/ac68bf5e2fcb4700d9b0baf4d6a009c923aaed46/docs/FAQ.md",
+        "https://github.com/bad-antics/blackflag-ecu/blob/ac68bf5e2fcb4700d9b0baf4d6a009c923aaed46/CONTRIBUTING.md",
+        "https://github.com/bad-antics/blackflag-ecu/blob/ac68bf5e2fcb4700d9b0baf4d6a009c923aaed46/docs/diagrams/J2534_INTERFACE.md"
+      ]
+    },
+    {
+      "name": "LeZed97/ZedSuite",
+      "url": "https://github.com/LeZed97/ZedSuite",
+      "revision": "77d75fb9e28df04379fd6d1912197947f1cce0c0",
+      "license": "GPL-3.0-only para código; marcas excluídas",
+      "licenseEvidence": [
+        "LICENSE é GPLv3; package.json e src-tauri/Cargo.toml especificam GPL-3.0-only, eliminando ambiguidade do badge GPL-3.0.",
+        "NOTICE/TRADEMARKS reservam nome, logotipo, mascote e ícones ZedPerf/ZedSuite; forks precisam de identidade própria.",
+        "Não foi realizada auditoria integral das licenças transitivas npm/Cargo; manifests/locks não substituem SBOM e avisos de cada dependência."
+      ],
+      "platform": "Aplicativo desktop Windows/macOS/Linux; frontend Next15/React18/TypeScript exportado estaticamente; motor Rust e APIs de arquivo via Tauri2/IPC. Gráficos incluem Plotly/Three.js.",
+      "findings": [
+        "README limita detecção automática aos Bosch VAG EDC15P, EDC15VM+, EDC16U1/U31/U34. Abrir qualquer BIN não significa identificar qualquer ECU.",
+        "Importação .ols/.xdf/JSON declarada beta e depende de definições; não implica cobertura Strada1.4/Hilux/S10/Ranger/L200/Amarok.",
+        "Há código de identificação/detecção de arquivos, hex, tabelas e vistas2D/3D; são referências verificáveis de organização, não conector de scanner.",
+        "Comandos Rust expostos por Tauri leem/escrevem arquivos; uma PWA estática não executa esses comandos IPC nativos sem uma implementação própria.",
+        "README anuncia edição BIN, DTC on/off e correção checksum; essas operações ficam fora desta entrega de leitura.",
+        "next.config.js desativa erro TypeScript e lint no build; existência de build não equivale a verificação de correção.",
+        "Não há submódulo Git identificado. Não foram baixados dumps nem reproduzidas alegações de validação em bancada."
+      ],
+      "decision": "Estudar somente padrões públicos de UX e separação de módulos. Não copiar código GPL/assinaturas/calibrações nem ativos visuais nesta entrega. Implementar leitor BIN original e visualizações2D/3D sem edição, identificação automática presumida ou escrita. Reuso futuro de código exigiria análise de obra derivada, licenciamento compatível GPL, fonte correspondente/avisos e preservação de marcas separadas.",
+      "sourceLinks": [
+        "https://github.com/LeZed97/ZedSuite/blob/77d75fb9e28df04379fd6d1912197947f1cce0c0/LICENSE",
+        "https://github.com/LeZed97/ZedSuite/blob/77d75fb9e28df04379fd6d1912197947f1cce0c0/NOTICE",
+        "https://github.com/LeZed97/ZedSuite/blob/77d75fb9e28df04379fd6d1912197947f1cce0c0/TRADEMARKS.md",
+        "https://github.com/LeZed97/ZedSuite/blob/77d75fb9e28df04379fd6d1912197947f1cce0c0/README.md",
+        "https://github.com/LeZed97/ZedSuite/blob/77d75fb9e28df04379fd6d1912197947f1cce0c0/package.json",
+        "https://github.com/LeZed97/ZedSuite/blob/77d75fb9e28df04379fd6d1912197947f1cce0c0/src-tauri/Cargo.toml",
+        "https://github.com/LeZed97/ZedSuite/blob/77d75fb9e28df04379fd6d1912197947f1cce0c0/src-tauri/src/commands.rs",
+        "https://github.com/LeZed97/ZedSuite/blob/77d75fb9e28df04379fd6d1912197947f1cce0c0/next.config.js"
+      ]
+    },
+    {
+      "name": "RallyPat/LibreTune",
+      "url": "https://github.com/RallyPat/LibreTune",
+      "revision": "0b9dd644c0f4ba0c58276e261616cee71a3c38dc",
+      "license": "GPL-2.0-only para o workspace; avisos de terceiros separados",
+      "licenseEvidence": [
+        "Cargo.toml declara license = GPL-2.0-only; LICENSE contém GNU GPL versão 2.",
+        "THIRD_PARTY_NOTICES.md registra um componente MIT do simulador; não foi feita auditoria integral de dependências transitivas."
+      ],
+      "platform": "Rust 2021, Tauri 2 e frontend React; portas seriais/TCP nativas no núcleo. README oferece desktop Linux/Windows/macOS e declara pré-lançamento.",
+      "findings": [
+        "README anuncia Speeduino, rusEFI, FOME, epicEFI e suporte parcial MegaSquirt; isso não comprova suporte OBD-II genérico nem cobertura das ECUs OEM do catálogo AUTO ECU LAB.",
+        "protocol/commands.rs define parâmetros de leitura, escrita, burn e console; bytes de comandos vêm das definições INI, não de uma tabela universal.",
+        "protocol/connection.rs contém canais serial/TCP e políticas de auto-burn; não é um núcleo exclusivamente de leitura.",
+        "A documentação de protocolo apresenta exemplos simplificados e preenchimento com zeros em sincronização parcial; esses exemplos não devem ser tratados como dados reais nem contrato comum a todo firmware.",
+        "Há código e documentação de tabelas 2D/3D, logs e simulador, mas frontend Tauri depende de IPC e não funciona como adaptador PWA apenas copiando componentes.",
+        "Cargo.lock está presente e não há submódulos Git na árvore auditada; existência de lock/CI não comprova validação física ou licenças transitivas completas."
+      ],
+      "decision": "Não incorporar código, INIs, mapas, simulador nem runtime nesta entrega. Usar padrões genéricos de organização como referência para implementação independente de inspeção BIN/2D/3D e relatórios. Reuso futuro de componentes GPL exige analisar o componente concreto, obrigações de distribuição de fonte/avisos, dependências e licença compatível da obra resultante. Adaptador de ECU aftermarket só após protocolo/versionamento documentados e implementação isolada de leitura validada.",
+      "sourceLinks": [
+        "https://github.com/RallyPat/LibreTune/tree/0b9dd644c0f4ba0c58276e261616cee71a3c38dc",
+        "https://github.com/RallyPat/LibreTune/blob/0b9dd644c0f4ba0c58276e261616cee71a3c38dc/LICENSE",
+        "https://github.com/RallyPat/LibreTune/blob/0b9dd644c0f4ba0c58276e261616cee71a3c38dc/Cargo.toml",
+        "https://github.com/RallyPat/LibreTune/blob/0b9dd644c0f4ba0c58276e261616cee71a3c38dc/THIRD_PARTY_NOTICES.md",
+        "https://github.com/RallyPat/LibreTune/blob/0b9dd644c0f4ba0c58276e261616cee71a3c38dc/README.md",
+        "https://github.com/RallyPat/LibreTune/blob/0b9dd644c0f4ba0c58276e261616cee71a3c38dc/crates/libretune-app/src-tauri/Cargo.toml",
+        "https://github.com/RallyPat/LibreTune/blob/0b9dd644c0f4ba0c58276e261616cee71a3c38dc/crates/libretune-core/src/protocol/commands.rs",
+        "https://github.com/RallyPat/LibreTune/blob/0b9dd644c0f4ba0c58276e261616cee71a3c38dc/crates/libretune-core/src/protocol/connection.rs",
+        "https://github.com/RallyPat/LibreTune/blob/0b9dd644c0f4ba0c58276e261616cee71a3c38dc/docs/src/technical/ecu-protocol.md"
+      ]
+    },
+    {
+      "name": "alexandrefelipemuller/slowduino",
+      "url": "https://github.com/alexandrefelipemuller/slowduino",
+      "revision": "08536a8ab7b040bca2418fb43acff8dea876c928",
+      "license": "Conflito explícito: LICENSE MIT; docs/contributing.md declara GNU GPL v2",
+      "licenseEvidence": [
+        "LICENSE contém texto MIT e copyright de Alexandre Felipe Muller de Souza.",
+        "docs/contributing.md identifica o projeto como GNU GPL v2, associado à licença Speeduino. O conflito não foi resolvido apenas pelo rótulo MIT da API GitHub.",
+        "Cabeçalhos dos fontes inspecionados descrevem arquivos sem esclarecer esse conflito; não se presume uma licença única para cópia."
+      ],
+      "platform": "Firmware C++/Arduino para Uno/Nano/ATmega328P; platformio.ini também define Mega2560 e STM32F103 Blue Pill. Não é aplicativo PWA nem scanner ELM327.",
+      "findings": [
+        "Firmware implementa leitura de ADC, injeção, ignição, armazenamento EEPROM/flash e protocolo TunerStudio; essas rotinas controlam o motor e não integram o escopo de diagnóstico de leitura.",
+        "docs/communication-and-debug.md documenta comandos de consulta junto com escrita e burn EEPROM. Nenhuma ponte BLE/Wi-Fi/USB ou scanner OEM é fornecida para a PWA AUTO ECU LAB.",
+        "A documentação afirma não distribuir INI, porém a árvore contém tunerstudio/slowduino_202402.ini.",
+        "O cabeçalho do INI descreve assinatura slowduino 202402, mas seu campo signature e slowduino/comms.cpp usam speeduino 202402(s). Não basta o texto de apresentação para identificar firmware.",
+        "O INI declara páginas de protocolo como stubs que retornam zeros/descartam escritas. Esses zeros não representam sensores ou calibrações medidos.",
+        "Sensores.cpp lê canais ADC com conversões específicas do firmware/hardware; esses campos não equivalem a PIDs OBD-II padronizados.",
+        "Não há submódulos Git na árvore auditada. Builds e experimentos de simulador existentes não foram executados nem usados como evidência de cobertura de veículos reais."
+      ],
+      "decision": "Não incorporar código, INI ou tabelas enquanto a licença estiver contraditória. Não habilitar adaptador Slowduino nem pressupor assinatura, offsets ou unidade física. Eventual integração de bancada exige esclarecimento de licença, versão/assinatura verificadas, especificação de leitura, distinção explícita entre stubs e canais reais e testes de hardware autorizado. Manter no produto somente o ELM327 documentado já implementado.",
+      "sourceLinks": [
+        "https://github.com/alexandrefelipemuller/slowduino/tree/08536a8ab7b040bca2418fb43acff8dea876c928",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/LICENSE",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/docs/contributing.md",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/README.md",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/platformio.ini",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/docs/communication-and-debug.md",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/tunerstudio/slowduino_202402.ini",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/slowduino/comms.cpp",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/slowduino/sensors.cpp",
+        "https://github.com/alexandrefelipemuller/slowduino/blob/08536a8ab7b040bca2418fb43acff8dea876c928/slowduino/storage.cpp"
+      ]
+    },
+    {
+      "name": "dvjcodec/SCG-ECU-2.0-STM32F407-8x8",
+      "url": "https://github.com/dvjcodec/SCG-ECU-2.0-STM32F407-8x8",
+      "revision": "1e25e7249d20044b5d39f70b28919943a0a5ae84",
+      "license": "Declaração Creative Commons NonCommercial sem versão ou instrumento completo identificado",
+      "licenseEvidence": [
+        "LICENSE.md contém apenas a identificação CC NC / Creative Commons NonCommercial.",
+        "README repete Creative Commons NonCommercial, sem indicar URI, versão ou termos completos; não se atribui SPDX específico.",
+        "README agradece terceiro por firmware/base-map/INI; não foram verificadas concessões individuais ou licenças do firmware e mapas."
+      ],
+      "platform": "Projeto de ECU standalone STM32F407 com arquivos de hardware/produção, firmware.bin, base-map.msq e speeduino.ini. Não há fonte de firmware C/C++ nem conector OBD-II na árvore auditada.",
+      "findings": [
+        "README descreve oito saídas de injetores, oito saídas de ignição, atuadores, sensores e CAN físico; presença de CAN não comprova protocolo OBD-II, UDS ou compatibilidade OEM.",
+        "Repositório contém firmware e mapa-base para uma ECU de reposição; arquivos não são medições de scanner e não alimentam estatísticas de resposta de veículos.",
+        "A árvore contém Gerbers, BOM/CPL e arquivo EAGLE, sem implementação do firmware para auditar isolamento de leitura ou drivers de acesso.",
+        "Licenciamento NC e termos incompletos impedem tratar os materiais como livremente incorporáveis ao aplicativo de uma oficina comercial sem esclarecimento/autorização específica.",
+        "Não há submódulos Git identificados. Firmware, mapa e arquivos de fabricação não foram baixados, executados, gravados ou validados em bancada."
+      ],
+      "decision": "Excluir firmware, mapas, INIs, esquemas e arte de qualquer pacote/runtime desta entrega. Registrar somente referência e limites da auditoria. Não criar adaptador SCG nem prometer suporte aos veículos do AUTO ECU LAB. Eventual uso de materiais exige esclarecer versão/escopo da licença, direitos de componentes de terceiros, autorização para uso pretendido e protocolo de leitura validado.",
+      "sourceLinks": [
+        "https://github.com/dvjcodec/SCG-ECU-2.0-STM32F407-8x8/tree/1e25e7249d20044b5d39f70b28919943a0a5ae84",
+        "https://github.com/dvjcodec/SCG-ECU-2.0-STM32F407-8x8/blob/1e25e7249d20044b5d39f70b28919943a0a5ae84/LICENSE.md",
+        "https://github.com/dvjcodec/SCG-ECU-2.0-STM32F407-8x8/blob/1e25e7249d20044b5d39f70b28919943a0a5ae84/README.md"
+      ]
+    }
+  ]
+}

@@ -47,10 +47,11 @@ test("configurações inválidas não habilitam módulos desconhecidos ou códig
     validatePreferences({ ...DEFAULT_PREFERENCES, schemaVersion: 2 }),
   );
 });
-test("registro preserva sete destinos de navegação e acrescenta Base no mesmo app", () => {
-  assert.match(APP_VERSION, /^2\.2\./);
+test("registro acrescenta BIN e compatibilidade sem apertar a navegação móvel", () => {
+  assert.match(APP_VERSION, /^2\.3\./);
+  const visible = APP_MODULES.filter((module) => module.navigation !== false);
   assert.deepEqual(
-    APP_MODULES.filter((m) => m.navigation !== false).map((m) => m.id),
+    visible.map((module) => module.id),
     [
       "analise",
       "conexoes",
@@ -59,12 +60,35 @@ test("registro preserva sete destinos de navegação e acrescenta Base no mesmo 
       "simulador",
       "relatorios",
       "sistema",
+      "binario",
     ],
   );
-  const base = APP_MODULES.find((m) => m.id === "base");
+  assert.equal(
+    visible.filter((module) => module.mobileNavigation !== false).length,
+    7,
+  );
+  assert.equal(
+    APP_MODULES.find((module) => module.id === "sistema").mobileNavigation,
+    false,
+  );
+  const base = APP_MODULES.find((module) => module.id === "base");
   assert.equal(base.label, "Base real e estatísticas");
   assert.equal(base.short, "Base");
   assert.equal(base.navigation, false);
   assert.equal(base.icon, "database");
-  assert.ok(APP_MODULES.every((m) => m.label && m.description));
+  assert.equal(
+    APP_MODULES.find((module) => module.id === "compatibilidade").navigation,
+    false,
+  );
+  assert.equal(APP_MODULES.length, 10);
+  assert.ok(APP_MODULES.every((module) => module.label && module.description));
+});
+test("as ferramentas locais novas podem ser atalhos sem carregar código remoto", () => {
+  assert.deepEqual(
+    validatePreferences({
+      ...DEFAULT_PREFERENCES,
+      favorites: ["binario", "compatibilidade"],
+    }).favorites,
+    ["binario", "compatibilidade"],
+  );
 });

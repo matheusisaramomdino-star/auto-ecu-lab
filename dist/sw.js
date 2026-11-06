@@ -2,13 +2,16 @@
 "use strict";
 
 const CACHE_PREFIX = "auto-ecu-lab-shell-";
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 const SCOPE = new URL(self.registration.scope);
 const APP_MARKER = '<meta name="auto-ecu-lab-app" content="v1">';
 const SHELL_FILES = [
   "./",
   "./app.mjs",
+  "./binary.mjs",
+  "./binary-workbench.mjs",
+  "./compatibility.mjs",
   "./chart.mjs",
   "./catalog.mjs",
   "./modes.mjs",

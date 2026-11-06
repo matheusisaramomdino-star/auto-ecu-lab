@@ -102,7 +102,16 @@ const waitUntil = async (condition) => {
   );
 };
 await waitUntil(() => document.querySelector("#desktop-nav a"));
-assert.equal(document.querySelectorAll("#desktop-nav a").length, 7);
+assert.equal(document.querySelectorAll("#desktop-nav a").length, 8);
+assert.equal(document.querySelectorAll("#mobile-nav a").length, 7);
+assert.equal(
+  document.querySelectorAll('#mobile-nav a[href="#sistema"]').length,
+  0,
+);
+assert.equal(
+  document.querySelectorAll('#mobile-nav a[href="#binario"]').length,
+  1,
+);
 assert.match(document.body.textContent, /Auto Elétrica Doidinho/);
 const initial = await loadState();
 if (scenario === "legacy") {
@@ -134,7 +143,7 @@ if (scenario === "legacy") {
     recordings: [],
     selectedId: "",
   });
-  assert.match(document.body.textContent, /Seu primeiro ensaio começa aqui/);
+  assert.match(document.body.textContent, /Nenhum ensaio selecionado/);
   assert.equal(document.querySelector("#signal-chart"), null);
   assert.equal(document.querySelector(".signal-chart"), null);
 }
@@ -146,6 +155,8 @@ for (const page of [
   "conexoes",
   "sistema",
   "base",
+  "binario",
+  "compatibilidade",
 ]) {
   location.hash = "#" + page;
   window.dispatchEvent(new window.Event("hashchange"));
@@ -196,14 +207,24 @@ for (const page of [
       "Não disponível",
     );
   }
+  if (page === "binario") {
+    assert.match(document.querySelector("h1").textContent, /BIN/);
+    assert.ok(document.querySelector("[data-binary-file]"));
+    assert.equal(document.querySelector("[data-binary-export]"), null);
+    assert.equal(document.querySelector("[data-binary-line]"), null);
+  }
+  if (page === "compatibilidade") {
+    assert.match(document.querySelector("h1").textContent, /Compatibilidade/);
+    assert.ok(!document.querySelector("[data-live-action]"));
+  }
   if (page === "sistema") {
     assert.match(document.body.textContent, /O mesmo endereço e o mesmo ícone/);
     assert.ok(document.querySelector("[data-check-updates]"));
     assert.equal(
       document.querySelectorAll("#system-form [name=favorite]").length,
-      7,
+      9,
     );
-    assert.equal(document.querySelectorAll(".module-tile").length, 7);
+    assert.equal(document.querySelectorAll(".module-tile").length, 9);
   }
 }
 assert.equal(hardwareRequests, 0);
@@ -346,6 +367,52 @@ if (scenario === "import") {
   assert.match(document.body.textContent, /1 duplicata/);
   assert.equal(hardwareRequests, 0);
 }
+if (scenario === "binary") {
+  const visit = (page) => {
+    location.hash = `#${page}`;
+    window.dispatchEvent(new window.Event("hashchange"));
+  };
+  let confirmations = 0;
+  globalThis.confirm = () => {
+    confirmations++;
+    return true;
+  };
+  visit("binario");
+  const originalBytes = Uint8Array.from({ length: 32 }, (_, index) => index);
+  const file = new File([originalBytes], "fixture-only.bin", {
+    type: "application/octet-stream",
+  });
+  const input = document.querySelector("[data-binary-file]");
+  input.files = [file];
+  input.dispatchEvent(new window.Event("change", { bubbles: true }));
+  await waitUntil(() => document.querySelector(".binary-grid"));
+  assert.match(document.body.textContent, /fixture-only\.bin/);
+  assert.deepEqual(
+    [...document.querySelectorAll(".binary-grid tbody tr:first-child td")].map(
+      (cell) => Number(cell.textContent),
+    ),
+    [0, 1, 2, 3, 4, 5, 6, 7],
+  );
+  assert.ok(document.querySelector("[data-binary-line] svg"));
+  assert.ok(document.querySelector("[data-binary-surface] svg"));
+  assert.deepEqual(new Uint8Array(await file.arrayBuffer()), originalBytes);
+  assert.equal((await loadState()).recordings.length, 0);
+  visit("sistema");
+  visit("binario");
+  assert.match(document.body.textContent, /fixture-only\.bin/);
+  assert.ok(document.querySelector(".binary-grid"));
+  assert.equal(
+    confirmations,
+    0,
+    "Trocar tela conserva o BIN sem descartar o arquivo.",
+  );
+  document.querySelector("[data-binary-discard]").click();
+  await waitUntil(() => !document.querySelector(".binary-grid"));
+  assert.equal(confirmations, 1);
+  assert.equal(document.querySelector("[data-binary-export]"), null);
+  assert.equal((await loadState()).recordings.length, 0);
+  assert.equal(hardwareRequests, 0);
+}
 // Cancelar uma saída não pode reconstruir o formulário e apagar o rascunho.
 location.hash = "#veiculos";
 window.dispatchEvent(new window.Event("hashchange"));
@@ -359,5 +426,5 @@ window.dispatchEvent(new window.Event("hashchange"));
 assert.equal(document.querySelector("#vehicle-form"), vehicleForm);
 assert.equal(vehicleForm.querySelector("[name=model]").value, "RASCUNHO_TESTE");
 console.log(
-  "Oito telas renderizadas, base sem exemplos ativos e zero conexões automáticas.",
+  "Dez telas renderizadas, base sem exemplos ativos e zero conexões automáticas.",
 );

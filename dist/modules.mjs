@@ -1,5 +1,5 @@
 /** Registro distribuído com o aplicativo: novos módulos chegam pelo mesmo site. */
-export const APP_VERSION = "2.2.0";
+export const APP_VERSION = "2.3.0";
 export const APP_MODULES = Object.freeze([
   {
     id: "analise",
@@ -52,8 +52,25 @@ export const APP_MODULES = Object.freeze([
     icon: "refresh",
     label: "Sistema e atualizações",
     short: "Sistema",
+    mobileNavigation: false,
     description:
       "Atualizações no mesmo ícone, preferências e histórico de melhorias.",
+  },
+  {
+    id: "binario",
+    icon: "file",
+    label: "Arquivos BIN",
+    short: "BIN",
+    description:
+      "Leitura local de arquivos e tabelas 2D/3D, sem modificar firmware.",
+  },
+  {
+    id: "compatibilidade",
+    icon: "file",
+    label: "Compatibilidade",
+    short: "Compatibilidade",
+    navigation: false,
+    description: "Protocolos, licenças e limites verificados das integrações.",
   },
   {
     id: "base",
@@ -102,6 +119,8 @@ export function updateSafety({
   hardwareBusy = false,
   unsavedSession = false,
   dirtyForms = false,
+  binaryBusy = false,
+  unsavedBinary = false,
 } = {}) {
   const reasons = [];
   if (writing || preferencesWriting) reasons.push("Salvamento em andamento.");
@@ -109,6 +128,11 @@ export function updateSafety({
     reasons.push("Uma conexão ou consulta real está em andamento.");
   if (unsavedSession)
     reasons.push("Há dados de uma sessão real ainda não salvos.");
+  if (binaryBusy) reasons.push("Há uma leitura de arquivo BIN em andamento.");
+  if (unsavedBinary)
+    reasons.push(
+      "Há um arquivo BIN em memória com relatório ainda não exportado.",
+    );
   if (dirtyForms)
     reasons.push("Há um formulário ou arquivo selecionado ainda não salvo.");
   return { safe: reasons.length === 0, reasons };

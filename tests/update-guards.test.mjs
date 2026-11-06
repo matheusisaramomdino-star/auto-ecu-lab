@@ -28,6 +28,8 @@ test("atualização só é segura quando não há operação ou rascunho pendent
     "hardwareBusy",
     "unsavedSession",
     "dirtyForms",
+    "binaryBusy",
+    "unsavedBinary",
   ]) {
     const result = updateSafety({ [flag]: true });
     assert.equal(result.safe, false, flag);
@@ -37,5 +39,20 @@ test("atualização só é segura quando não há operação ou rascunho pendent
     updateSafety({ writing: true, session: true, dirtyForms: true }).reasons
       .length,
     3,
+  );
+});
+
+test("BIN em processamento ou relatório pendente adiam a mesma atualização", () => {
+  assert.match(
+    updateSafety({ binaryBusy: true }).reasons.join(" "),
+    /leitura de arquivo BIN/,
+  );
+  assert.match(
+    updateSafety({ unsavedBinary: true }).reasons.join(" "),
+    /relatório ainda não exportado/,
+  );
+  assert.equal(
+    updateSafety({ binaryBusy: false, unsavedBinary: false }).safe,
+    true,
   );
 });

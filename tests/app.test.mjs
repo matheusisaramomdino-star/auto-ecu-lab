@@ -16,8 +16,11 @@ function runScenario(scenario) {
   );
   assert.equal(result.status, 0, result.stderr || result.stdout);
 }
-test("aplicação inicia vazia, integra oito telas e não solicita hardware", () => {
+test("aplicação inicia vazia, integra dez telas e não solicita hardware", () => {
   runScenario("empty");
+});
+test("BIN permanece local entre telas e não solicita hardware", () => {
+  runScenario("binary");
 });
 test("atualização arquiva exemplo legado e mantém registro não verificado fora das estatísticas", () => {
   runScenario("legacy");
