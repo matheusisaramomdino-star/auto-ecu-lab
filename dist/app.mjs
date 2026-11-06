@@ -35,6 +35,8 @@ import {
 import { createUpdateManager } from "./updates.mjs";
 import { migrateRealBase, isSyntheticRecord } from "./real-base.mjs";
 import { summarizeRecordings, provenanceStatus } from "./statistics.mjs";
+import { createBinaryWorkbench } from "./binary-workbench.mjs";
+import { REPOSITORY_AUDIT, COMPATIBILITY_MARKDOWN } from "./compatibility.mjs";
 
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const h = escapeHtml;
@@ -98,6 +100,21 @@ const liveController = createConnectionController({
   onSave: saveLiveRecording,
   canOperate: () => !updateBarrier,
   onSafetyChange: () => queueMicrotask(() => updater.refreshSafety()),
+});
+const binaryWorkbench = createBinaryWorkbench({
+  notify: toast,
+  download,
+  canOperate: () => !updateBarrier,
+  onSafetyChange: () =>
+    queueMicrotask(() => {
+      if (
+        route() === "binario" &&
+        !binaryWorkbench.isBusy &&
+        !binaryWorkbench.hasUnsavedData
+      )
+        captureForms();
+      updater.refreshSafety();
+    }),
 });
 const updater = createUpdateManager({
   isSafe: currentUpdateSafety,
@@ -220,24 +237,23 @@ function analysisPage() {
   let html = heading(
     "DIAGNÓSTICO EXPLORATÓRIO",
     "Análise de resposta",
-    "Auto Elétrica Doidinho · análise com origem e contexto, no computador e no celular.",
+    "Compare pedal, borboleta e rotação a partir das medições do scanner.",
     `<a class="btn primary" href="#importar">${icon("upload")} Importar CSV</a>`,
   );
   if (!r)
     return (
       html +
       empty(
-        "Seu primeiro ensaio começa aqui",
-        "Cadastre o veículo e importe medições reais ou faça uma coleta OBD-II. Não há valores de demonstração nesta base.",
+        "Nenhum ensaio selecionado",
+        "Cadastre o veículo e importe o CSV da aquisição. Para ler o scanner, escolha Conexões.",
         "#veiculos",
         "Cadastrar veículo",
       ) +
-      `<div class="panel-link"><a class="text-link" href="#base">Ver base real e estatísticas →</a></div>`
+      `<section class="workshop-actions" aria-label="Ferramentas da oficina"><a class="workshop-action" href="#conexoes">${icon("plug")}<strong>Coletar OBD-II</strong><span>Conectar um adaptador documentado</span></a><a class="workshop-action" href="#binario">${icon("file")}<strong>Abrir arquivo BIN</strong><span>Inspecionar bytes e tabelas 2D/3D</span></a><a class="workshop-action" href="#base">${icon("database")}<strong>Base de medições</strong><span>Conferir origem e estatísticas locais</span></a></section><div class="panel-link"><a class="text-link" href="#compatibilidade">Compatibilidade e referências</a></div>`
     );
   const result = analyze(r.samples, r.diagnostics, r.analysisConfig);
   const provenance = provenanceStatus(r);
   html += `<section class="panel provenance-banner"><div><strong>${provenance.eligible ? "Origem documentada para análise local" : "Registro fora das estatísticas da base real"}</strong><p>${h(provenance.reason)}</p></div><a class="btn" href="#base">Base e estatísticas</a></section>`;
-  html += `<div class="install-banner"><span class="round-icon">${icon("refresh")}</span><div><h2>O mesmo aplicativo. Sempre evoluindo.</h2><p>Novas melhorias chegam aqui, sem outro ícone ou reinstalação.</p></div><a class="btn" href="#sistema">Sistema e atualizações →</a></div>`;
   const shortcuts = preferences.favorites
     .map((id) => APP_MODULES.find((module) => module.id === id))
     .filter(Boolean);
@@ -467,6 +483,47 @@ function basePage() {
   );
 }
 
+function compatibilityPage() {
+  const capabilities = [
+    [
+      "CSV, resposta do acelerador e relatórios",
+      "Disponível no navegador",
+      "Windows, Android e iOS. Medições locais com origem documentada; simulações identificadas e separadas.",
+    ],
+    [
+      "Arquivos BIN, 2D e 3D",
+      "Disponível no navegador",
+      "Inspeção genérica de bytes e recortes definidos pelo operador; não identifica mapas, unidades físicas ou ECU automaticamente.",
+    ],
+    [
+      "OBD-II, identificação e sensores",
+      "Implementado; requer adaptador compatível",
+      "ELM327 documentado via BLE ou Web Serial quando o navegador oferece essas APIs. Serviços de leitura e PIDs anunciados pelo veículo. Sem validação física nesta entrega.",
+    ],
+    [
+      "USB e Bluetooth Classic",
+      "Conforme porta e plataforma",
+      "Web Serial em navegador compatível ou transporte serial do componente Python. Classic não é BLE.",
+    ],
+    [
+      "Wi-Fi TCP e BLE nativo",
+      "Componente Python",
+      "Host/porta ou UUIDs fornecidos pelo fabricante. O site não abre uma conexão TCP bruta.",
+    ],
+  ];
+  return (
+    heading(
+      "REVISÃO TÉCNICA · 06/11/2026",
+      "Compatibilidade e fontes",
+      "Funções disponíveis, condições de conexão e decisões sobre os projetos inspecionados.",
+      `<button type="button" class="btn" data-export-compatibility>Baixar relatório</button>`,
+    ) +
+    `<section class="panel"><div class="panel-heading"><div><h2>O que pode ser usado nesta versão</h2><p>Disponibilidade de software não certifica um scanner, veículo ou procedimento de diagnóstico.</p></div></div><div class="table-wrap"><table><thead><tr><th>Função</th><th>Disponibilidade</th><th>Condições</th></tr></thead><tbody>${capabilities.map(([name, status, condition]) => `<tr><td>${h(name)}</td><td>${h(status)}</td><td class="wrappable-cell">${h(condition)}</td></tr>`).join("")}</tbody></table></div><p class="panel-footnote">No Safari do iPhone, use arquivos, simulações e relatórios. Acesso direto ao scanner exige APIs ou integração nativa autorizada disponíveis naquele aparelho.</p></section>` +
+    `<section class="panel"><div class="panel-heading"><div><h2>Seis repositórios inspecionados</h2><p>Implementação própria nesta entrega. Código, executáveis, firmware, dumps e marcas desses projetos não foram incorporados.</p></div><span class="counter">${REPOSITORY_AUDIT.length}</span></div><div class="audit-list">${REPOSITORY_AUDIT.map((repo) => `<details class="audit-item"><summary><strong>${h(repo.name)}</strong><span>${h(repo.license)}</span></summary><div><p>${h(repo.decision)}</p><p>${h(repo.platform)}</p><ul>${repo.licenseEvidence.map((item) => `<li>${h(item)}</li>`).join("")}</ul><p>Revisão inspecionada: <code>${h(repo.revision)}</code></p><div class="audit-sources">${repo.sourceLinks.map((url, index) => `<a class="text-link" href="${h(url)}" target="_blank" rel="noopener noreferrer">${index === 0 ? "Repositório / fonte principal" : "Fonte " + (index + 1)} ↗</a>`).join("")}</div></div></details>`).join("")}</div></section>` +
+    `<section class="panel help-panel"><h2>Integrações que dependem de documentação</h2><p>J2534 precisa de driver/API autorizados e validação da arquitetura. Rasther III/S conserva a importação CSV; comunicação direta depende de SDK ou protocolo autorizado. Outros scanners seguem o mesmo critério. Esses conectores não são oferecidos como operações disponíveis.</p><p>Os projetos de referência não fornecem medições reais para a sua base. A auditoria técnica das licenças não substitui a revisão das obrigações de cada componente em um futuro reuso.</p></section>`
+  );
+}
+
 function sourceDate(data) {
   const local = String(data.get("capturedAt") || "").trim(),
     offset = String(data.get("captureOffset") || "-04:00");
@@ -532,13 +589,17 @@ function currentUpdateSafety() {
     collecting: liveController.isCollecting,
     hardwareBusy: liveController.isBusy,
     unsavedSession: liveController.hasUnsavedData,
+    binaryBusy: binaryWorkbench.isBusy,
+    unsavedBinary: binaryWorkbench.hasUnsavedData,
     dirtyForms,
   });
 }
 function captureForms() {
   formBaselines.clear();
-  for (const form of $("#conteudo").querySelectorAll("form"))
-    formBaselines.set(form, formFingerprint(form));
+  for (const form of $("#conteudo").querySelectorAll("form")) {
+    if (form.id !== "binary-table-form")
+      formBaselines.set(form, formFingerprint(form));
+  }
 }
 async function persistPreferences(patch) {
   preferencesWriting++;
@@ -595,7 +656,7 @@ function systemPage() {
       "As melhorias chegam neste endereço e no ícone que você já usa.",
       `<span class="badge">VERSÃO ${APP_VERSION}</span>`,
     ) +
-    `<section class="panel system-version"><div class="panel-heading"><div><h2>Seu aplicativo continua aqui.</h2><p>Quando estiver conectado, verificamos novas versões ao abrir, voltar ao app e periodicamente.</p></div>${icon("refresh")}</div><div class="system-content"><dl class="version-details"><div><dt>Versão em uso</dt><dd>${APP_VERSION}</dd></div><div><dt>Publicação encontrada</dt><dd id="system-available-version">${h(updateState.release?.version || "Verifique com internet")}</dd></div><div><dt>Instalação</dt><dd>O mesmo endereço e o mesmo ícone</dd></div></dl><p id="system-update-message" role="status">${h(updateState.message)}</p><p id="system-update-reasons" class="notice">${h((updateState.reasons || []).join(" "))}</p><div class="system-actions"><button class="btn primary" type="button" data-check-updates>Verificar agora</button><button class="btn" type="button" data-apply-update>Aplicar versão pronta</button></div><p class="notice">Uma versão nova aguarda o fim de coletas, conexões, salvamentos e formulários não salvos. Outras abas também precisam estar prontas. Sem internet, continua a versão já preparada.</p></div></section>` +
+    `<section class="panel system-version"><div class="panel-heading"><div><h2>Versão e atualização</h2><p>Quando estiver conectado, verificamos novas versões ao abrir, voltar ao app e periodicamente.</p></div>${icon("refresh")}</div><div class="system-content"><dl class="version-details"><div><dt>Versão em uso</dt><dd>${APP_VERSION}</dd></div><div><dt>Publicação encontrada</dt><dd id="system-available-version">${h(updateState.release?.version || "Verifique com internet")}</dd></div><div><dt>Instalação</dt><dd>O mesmo endereço e o mesmo ícone</dd></div></dl><p id="system-update-message" role="status">${h(updateState.message)}</p><p id="system-update-reasons" class="notice">${h((updateState.reasons || []).join(" "))}</p><div class="system-actions"><button class="btn primary" type="button" data-check-updates>Verificar agora</button><button class="btn" type="button" data-apply-update>Aplicar versão pronta</button></div><p class="notice">Uma versão nova aguarda o fim de coletas, conexões, salvamentos e formulários não salvos. Outras abas também precisam estar prontas. Sem internet, continua a versão já preparada.</p></div></section>` +
     `<div class="two-col system-columns"><section class="panel"><div class="panel-heading"><div><h2>Preferências deste aparelho</h2><p>Personalize o painel sem acrescentar outro aplicativo.</p></div></div><form id="system-form" class="padded-form"><label class="checkbox-label"><input type="checkbox" name="automaticUpdates" ${preferences.automaticUpdates ? "checked" : ""}>Aplicar novas versões automaticamente quando o aplicativo estiver livre</label><h3>Atalhos no painel inicial</h3><div class="module-options">${APP_MODULES.filter(
       (module) => module.id !== "sistema",
     )
@@ -605,7 +666,7 @@ function systemPage() {
       )
       .join(
         "",
-      )}</div><button class="btn primary" type="submit">Salvar preferências</button><p class="notice">Atalhos, política de atualização e parâmetros comparados do simulador ficam neste aparelho. Os ensaios e o backup de diagnóstico permanecem separados dessas preferências.</p></form></section><section class="panel"><div class="panel-heading"><div><h2>Melhorias desta versão</h2><p>Versão ${APP_VERSION} · evolução do código existente.</p></div></div><div class="system-content"><ul class="release-notes"><li>Base operacional vazia até receber medições reais.</li><li>Origem, data de aquisição e SHA-256 documentados na importação.</li><li>Estatísticas por grupos comparáveis, com duplicatas e ausências explícitas.</li><li>Exemplos antigos arquivados no aparelho; atualização pelo mesmo ícone.</li></ul><p class="notice">A organização foi comparada com recursos públicos de ferramentas de diagnóstico. Os protocolos proprietários e os limites de integração continuam respeitados; nenhuma atualização habilita gravação na ECU.</p></div></section></div>` +
+      )}</div><button class="btn primary" type="submit">Salvar preferências</button><p class="notice">Atalhos, política de atualização e parâmetros comparados do simulador ficam neste aparelho. Os ensaios e o backup de diagnóstico permanecem separados dessas preferências.</p></form></section><section class="panel"><div class="panel-heading"><div><h2>Melhorias desta versão</h2><p>Versão ${APP_VERSION} · evolução do código existente.</p></div></div><div class="system-content"><ul class="release-notes"><li>Inspeção local de BIN e leitura de tabelas em 2D/3D.</li><li>Sensores OBD-II documentados, consultados separadamente da coleta do pedal.</li><li>Auditoria de seis projetos com revisões, licenças e limites de integração.</li><li>Interface de oficina mais compacta, preservando a paleta e os dados existentes.</li></ul><a class="text-link" href="#compatibilidade">Consultar compatibilidade e relatório da auditoria →</a><p class="notice">As operações de hardware continuam limitadas às consultas documentadas de leitura.</p></div></section></div>` +
     `<section class="panel"><div class="panel-heading"><div><h2>Módulos do laboratório</h2><p>As ferramentas evoluem por atualização do site, mantendo seus registros locais.</p></div></div><div class="module-catalog">${APP_MODULES.filter(
       (module) => module.id !== "sistema",
     )
@@ -632,6 +693,8 @@ function render() {
     simulador: simulatorPage,
     relatorios: reportsPage,
     base: basePage,
+    binario: () => binaryWorkbench.page(),
+    compatibilidade: compatibilityPage,
     sistema: systemPage,
   };
   for (const [element, mobile] of [
@@ -639,6 +702,12 @@ function render() {
     [$("#mobile-nav"), true],
   ])
     element.innerHTML = navigation
+      .filter(
+        ([key]) =>
+          !mobile ||
+          APP_MODULES.find((module) => module.id === key).mobileNavigation !==
+            false,
+      )
       .map(
         ([key, name, label, short]) =>
           `<a href="#${key}" class="${mobile ? "" : "nav-item "}${(selected === "base" ? "analise" : selected) === key ? "active" : ""}" ${(selected === "base" ? "analise" : selected) === key ? 'aria-current="page"' : ""}>${icon(name)}<span>${mobile ? short : label}</span></a>`,
@@ -650,6 +719,7 @@ function render() {
   $("#conteudo").innerHTML = pages[selected]();
   if (selected === "conexoes")
     liveController.bind($("#conteudo"), state.vehicles);
+  if (selected === "binario") binaryWorkbench.bind($("#conteudo"));
   $("#vehicle-preset")?.addEventListener("change", (event) => {
     const preset = VEHICLES.find(
       (vehicle) => vehicle.key === event.target.value,
@@ -1052,6 +1122,16 @@ document.addEventListener("click", async (event) => {
         "Estatísticas locais exportadas com contagens e critérios de origem.",
       );
     }
+    if (target.hasAttribute("data-export-compatibility")) {
+      download(
+        COMPATIBILITY_MARKDOWN,
+        "AUTO_ECU_LAB_compatibilidade_2.3.md",
+        "text/markdown;charset=utf-8",
+      );
+      toast(
+        "Relatório de compatibilidade preparado com revisões e fontes da auditoria.",
+      );
+    }
     if (target.hasAttribute("data-backup")) {
       download(
         stateJSON(state),
@@ -1167,6 +1247,11 @@ document.addEventListener("change", () =>
 window.addEventListener("hashchange", () => {
   if (!state) return;
   if (route() === renderedRoute) return;
+  if (binaryWorkbench.isBusy && renderedRoute === "binario") {
+    location.hash = "#binario";
+    toast("Aguarde a leitura do arquivo.");
+    return;
+  }
   if (updateBarrier) {
     location.hash = "#" + renderedRoute;
     return;

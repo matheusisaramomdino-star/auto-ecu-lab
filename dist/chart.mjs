@@ -302,7 +302,7 @@ export function renderSignalChart(
         y: 47,
         width: Math.max(0, right - left),
         height: 231,
-        fill: "#39856d",
+        fill: "#FF8A00",
         opacity: 0.04,
       });
       if (event.time_s >= plotMin) {
@@ -311,7 +311,7 @@ export function renderSignalChart(
           x2: left,
           y1: 47,
           y2: 278,
-          stroke: "#b4cfc3",
+          stroke: "#FFFFFF",
           "stroke-dasharray": "3 5",
         });
         if (inView.length < 25)
@@ -356,7 +356,7 @@ export function renderSignalChart(
       x2: 0,
       y1: 47,
       y2: 278,
-      stroke: "#a4b5bd",
+      stroke: "#FFFFFF",
       "stroke-dasharray": "3 3",
       visibility: "hidden",
     });

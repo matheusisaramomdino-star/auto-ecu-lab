@@ -28,6 +28,13 @@ const READ_COMMANDS = new Set([
   "0100",
   "0120",
   "0140",
+  "0104",
+  "0105",
+  "010B",
+  "010D",
+  "010F",
+  "0110",
+  "0142",
   "010C",
   "0111",
   "0149",
@@ -59,6 +66,86 @@ export function assertReadOnlyCommand(command) {
     );
   }
   return normalized;
+}
+
+/** Métricas SAE Mode 01; a ECU informa quais PIDs oferece. Sem inferência OEM. */
+export const OBD_SENSORS = Object.freeze(
+  [
+    {
+      pid: "04",
+      key: "engine_load_pct",
+      label: "Carga calculada",
+      unit: "%",
+      width: 1,
+      formula: "A × 100 / 255",
+    },
+    {
+      pid: "05",
+      key: "coolant_c",
+      label: "Temperatura do líquido de arrefecimento",
+      unit: "°C",
+      width: 1,
+      formula: "A − 40",
+    },
+    {
+      pid: "0B",
+      key: "map_kpa",
+      label: "Pressão absoluta do coletor",
+      unit: "kPa",
+      width: 1,
+      formula: "A",
+    },
+    {
+      pid: "0D",
+      key: "speed_kmh",
+      label: "Velocidade informada pela ECU",
+      unit: "km/h",
+      width: 1,
+      formula: "A",
+    },
+    {
+      pid: "0F",
+      key: "intake_c",
+      label: "Temperatura do ar de admissão",
+      unit: "°C",
+      width: 1,
+      formula: "A − 40",
+    },
+    {
+      pid: "10",
+      key: "maf_gps",
+      label: "Fluxo de massa de ar",
+      unit: "g/s",
+      width: 2,
+      formula: "(256 × A + B) / 100",
+    },
+    {
+      pid: "42",
+      key: "module_voltage_v",
+      label: "Tensão do módulo",
+      unit: "V",
+      width: 2,
+      formula: "(256 × A + B) / 1000",
+    },
+  ].map(Object.freeze),
+);
+function sensorValue(pid, bytes) {
+  switch (pid) {
+    case "04":
+      return (bytes[0] * 100) / 255;
+    case "05":
+    case "0F":
+      return bytes[0] - 40;
+    case "0B":
+    case "0D":
+      return bytes[0];
+    case "10":
+      return (bytes[0] * 256 + bytes[1]) / 100;
+    case "42":
+      return (bytes[0] * 256 + bytes[1]) / 1000;
+    default:
+      fail("Definição de sensor não suportada.", "INVALID_REQUEST");
+  }
 }
 
 const hex = (value) => value.toString(16).toUpperCase().padStart(2, "0");
@@ -530,6 +617,61 @@ export class ElmSession {
         }
       }
       return result;
+    });
+  }
+  /** Consulta pontual explícita. Não muda os canais nem a cadência de readSignals(). */
+  readSensors() {
+    return this._serialized(async () => {
+      this._requireReady();
+      const snapshot = {
+        ecuId: this.ecuId,
+        sourceMode: "real",
+        acquired_at_utc: new Date().toISOString(),
+        time_s: null,
+        sensors: [],
+        errors: [],
+      };
+      for (const definition of OBD_SENSORS) {
+        const { pid, key, label, unit, width } = definition;
+        const supported = this._pids.has(parseInt(pid, 16));
+        const reading = {
+          pid,
+          key,
+          label,
+          unit,
+          ecuId: this.ecuId,
+          supported,
+          value: null,
+          status: supported ? "error" : "unsupported",
+          observed_at_s: null,
+          acquisition_s: null,
+          raw_bytes: null,
+          error: null,
+        };
+        snapshot.sensors.push(reading);
+        if (!supported) continue;
+        const request = "01" + pid,
+          started = this._clock();
+        try {
+          const payload = await this._obd(request);
+          if (payload.length !== 2 + width)
+            fail(`Resposta ${request} incompleta ou inválida.`, "MALFORMED");
+          reading.raw_bytes = payload.slice(2);
+          reading.value = sensorValue(pid, reading.raw_bytes);
+          reading.status = "ok";
+          reading.observed_at_s = (this._clock() - this._start) / 1000;
+          reading.acquisition_s = (this._clock() - started) / 1000;
+        } catch (error) {
+          reading.error = {
+            request,
+            message: error.message,
+            code: error.code || "OBD_ERROR",
+          };
+          snapshot.errors.push({ sensor: key, ...reading.error });
+        }
+      }
+      snapshot.time_s = (this._clock() - this._start) / 1000;
+      return snapshot;
     });
   }
   readSignals() {

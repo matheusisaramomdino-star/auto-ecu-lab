@@ -24,7 +24,7 @@ test("uma atualização mantém identidade, endereço inicial e escopo do aplica
   assert.equal(pkg.version, APP_VERSION);
   assert.equal(lock.version, APP_VERSION);
   assert.equal(lock.packages[""].version, APP_VERSION);
-  assert.equal(release.cacheVersion, "v4");
+  assert.equal(release.cacheVersion, "v5");
   assert.equal(/const CACHE_VERSION\s*=\s*"([^"]+)"/.exec(sw)?.[1], release.cacheVersion);
   assert.equal(/id="app-version">v([^<]+)/.exec(index)?.[1], APP_VERSION);
   assert.ok(!manifest.start_url.includes(APP_VERSION));

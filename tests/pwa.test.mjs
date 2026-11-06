@@ -164,7 +164,7 @@ test("preparo completo informa OFFLINE_READY sem forçar uma atualização", asy
   await runtime.trigger("install");
   assert.equal(runtime.waitingCalls, 0);
   assert.ok(runtime.messages.some((message) => message.type === "OFFLINE_READY"));
-  for (const file of ["app.mjs", "chart.mjs", "core.mjs", "real-base.mjs", "statistics.mjs", "store.mjs", "report.mjs", "updates.mjs", "preferences.mjs", "modules.mjs", "release.json", "style.css", "manifest.webmanifest", "assets/apple-touch-icon.png"]) {
+  for (const file of ["app.mjs", "binary.mjs", "binary-workbench.mjs", "compatibility.mjs", "chart.mjs", "core.mjs", "real-base.mjs", "statistics.mjs", "store.mjs", "report.mjs", "updates.mjs", "preferences.mjs", "modules.mjs", "release.json", "style.css", "manifest.webmanifest", "assets/apple-touch-icon.png"]) {
     assert.ok(runtime.fetchCalls.includes(new URL(file, origin).href));
   }
 });
@@ -181,6 +181,8 @@ test("shell continua disponível sem rede após instalação completa", async ()
   assert.equal((await runtime.request("/core.mjs")).status, 200);
   assert.equal((await runtime.request("/real-base.mjs")).status, 200);
   assert.equal((await runtime.request("/statistics.mjs")).status, 200);
+  for (const file of ["binary.mjs", "binary-workbench.mjs", "compatibility.mjs"])
+    assert.equal((await runtime.request("/" + file)).status, 200, file);
 });
 
 test("pedidos de login, API, relatórios, consulta, POST e outros domínios não são interceptados", () => {
@@ -345,10 +347,10 @@ test("falha do novo precache preserva o shell da versão anterior", async () => 
 
 test("ativação conserva a geração anterior para recuperação e não toca outros dados", async () => {
   const runtime = makeRuntime();
-  for (const name of ["auto-ecu-lab-shell-v1", "auto-ecu-lab-shell-v3", "diagnosticos-locais"]) await runtime.caches.open(name);
+  for (const name of ["auto-ecu-lab-shell-v1", "auto-ecu-lab-shell-v4", "diagnosticos-locais"]) await runtime.caches.open(name);
   await runtime.trigger("install");
   await runtime.trigger("activate");
-  assert.deepEqual((await runtime.caches.keys()).sort(), ["auto-ecu-lab-shell-v3", `auto-ecu-lab-shell-${release.cacheVersion}`, "diagnosticos-locais"].sort());
+  assert.deepEqual((await runtime.caches.keys()).sort(), ["auto-ecu-lab-shell-v4", `auto-ecu-lab-shell-${release.cacheVersion}`, "diagnosticos-locais"].sort());
   assert.ok(!/indexedDB\s*\.\s*deleteDatabase/.test(source));
 });
 

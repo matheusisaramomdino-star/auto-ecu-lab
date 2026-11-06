@@ -4,6 +4,17 @@ Continuação do repositório existente: aplicação web instalável para **Wind
 
 Site: [abrir AUTO ECU LAB](https://auto-ecu-lab-mobile.matheusisaramomdino.chatgpt.site). Os arquivos e diagnósticos permanecem locais, sem upload para um servidor de análise.
 
+## Versão 2.3
+
+A revisão inclui **Arquivos BIN** com inspeção local e tabelas 2D/3D, consulta pontual de sete sensores OBD-II documentados e uma interface de oficina mais compacta. A área **Compatibilidade** apresenta a auditoria dos seis repositórios solicitados, fontes e condições de conexão. O site continua no mesmo endereço e ícone; dados e preferências existentes são preservados.
+
+- [Relatório completo de licenças e compatibilidade](docs/compatibility-report.md)
+- [Módulos, conexões e limites da entrega](docs/module-plan-v23.md)
+- [Sensores documentados](docs/obd-sensors.md)
+- [Referência visual e decisões de design](docs/design-reference-v23.md)
+
+Não há integração direta com executáveis/firmware dos projetos auditados, edição de BIN, correção de checksum ou escrita real na ECU. Arquivos BIN ficam em memória neste aparelho, até exportar o relatório ou fechar o arquivo; a inspeção não fornece identificação automática de ECU ou mapas. J2534, Rasther direto e outros SDKs permanecem somente na documentação de requisitos.
+
 ## Recursos
 
 - Base inicial vazia, sem medições nem estatísticas fictícias. **Base real e estatísticas** calcula resultados locais apenas para registros com origem documentada; arquivos sem evidência suficiente continuam disponíveis para análise individual.
@@ -34,7 +45,7 @@ A presença real de `navigator.bluetooth` ou `navigator.serial`, as permissões 
 - **Android:** Chrome → **Instalar app**, quando oferecido, ou ⋮ → **Instalar aplicativo / Adicionar à tela inicial**.
 - **Windows:** use a instalação de aplicativo do navegador compatível, ou execute o Python.
 
-Instalar a PWA não instala drivers/SDKs. Conectado à internet, aguarde **Pronto para usar offline** antes de desconectar. Na primeira migração, use **Atualizar agora** ou feche e reabra o mesmo ícone, com as operações encerradas. A versão 2.2 mantém a verificação e aplicação automática quando o aplicativo está livre, sem outra instalação. Identidade, endereço inicial e escopo da PWA permanecem os mesmos.
+Instalar a PWA não instala drivers/SDKs. Conectado à internet, aguarde **Pronto para usar offline** antes de desconectar. Na primeira migração, use **Atualizar agora** ou feche e reabra o mesmo ícone, com as operações encerradas. A versão 2.3 mantém a verificação e aplicação automática quando o aplicativo está livre, sem outra instalação. Identidade, endereço inicial e escopo da PWA permanecem os mesmos.
 
 ## Operação real e simulação
 
@@ -85,6 +96,8 @@ python -m pytest -q
 ```
 
 Os testes usam respostas fictícias, transportes substitutos, IndexedDB e DOM em memória. As fixtures sintéticas ficam em `tests/fixtures/` e `python/tests/fixtures/`, isoladas do código executado pelo aplicativo. O pacote-fonte Python inclui testes identificados como sintéticos, sem carregá-los na base operacional. Não fazem pareamento nem conectam scanners/veículos. Não houve validação física. Os testes DOM não são apresentados como testes Safari/Chrome.
+
+Para regenerar o relatório disponível offline: `python scripts/build-compatibility-report.py`.
 
 Para regenerar o pacote-fonte Python servido pelo site: `python scripts/package-python.py`. O empacotamento exclui bancos, caches, ambientes virtuais e arquivos `.env`.
 

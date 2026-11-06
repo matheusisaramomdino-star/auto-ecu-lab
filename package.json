@@ -1,12 +1,12 @@
 {
   "name": "auto-ecu-lab-mobile",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "description": "AUTO ECU LAB — Auto Elétrica Doidinho: análise, simulação e diagnóstico OBD-II em leitura",
   "scripts": {
     "test": "node --test --test-isolation=none tests/*.test.mjs",
-    "check": "node --check dist/app.mjs && node --check dist/chart.mjs && node --check dist/core.mjs && node --check dist/real-base.mjs && node --check dist/statistics.mjs && node --check dist/store.mjs && node --check dist/report.mjs && node --check dist/catalog.mjs && node --check dist/modes.mjs && node --check dist/connections.mjs && node --check dist/obd.mjs && node --check dist/transports.mjs && node --check dist/sw.js && node --check dist/preferences.mjs && node --check dist/modules.mjs && node --check dist/updates.mjs && node scripts/check-release.mjs"
+    "check": "node --check dist/app.mjs && node --check dist/binary.mjs && node --check dist/binary-workbench.mjs && node --check dist/compatibility.mjs && node --check dist/chart.mjs && node --check dist/core.mjs && node --check dist/real-base.mjs && node --check dist/statistics.mjs && node --check dist/store.mjs && node --check dist/report.mjs && node --check dist/catalog.mjs && node --check dist/modes.mjs && node --check dist/connections.mjs && node --check dist/obd.mjs && node --check dist/transports.mjs && node --check dist/sw.js && node --check dist/preferences.mjs && node --check dist/modules.mjs && node --check dist/updates.mjs && node scripts/check-release.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.4",

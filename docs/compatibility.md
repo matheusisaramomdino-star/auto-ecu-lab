@@ -27,3 +27,7 @@ Somente a Strada tem ano e motor informados pelo requisito: 2022, 1.4. Para os o
 - [Rasther III/S — Tecnomotor](https://tecnomotor.com/conheca-a-tecnomotor/produtos/rasther/rastheriii-s/)
 
 As APIs e permissões evoluem; a aplicação deve testar a presença das interfaces e apresentar a limitação observada, sem prometer compatibilidade por marca de sistema ou nome de scanner.
+
+## Revisão 2.3
+
+Consulte o [relatório de licenças e módulos](compatibility-report.md) para as seis referências auditadas. Os cards operacionais mostram somente o ELM327 implementado. A inspeção BIN e suas vistas2D/3D são locais e independem do scanner. Novos sensores são consultas pontuais somente na versão web; a CLI Python mantém seus canais existentes. Não houve validação em hardware nesta entrega.

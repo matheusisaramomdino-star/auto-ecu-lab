@@ -56,18 +56,21 @@ export function createConnectionController({
   let frames = [],
     identity = null,
     dtc = null,
+    sensorSnapshot = null,
     diagnosticError = "",
     lastError = "";
   let epoch = 0;
   let savedFrames = 0,
     savedIdentity = null,
-    savedDtc = null;
+    savedDtc = null,
+    savedSensors = null;
 
   const capabilities = () => getCapabilities();
   const hasUnsavedData = () =>
     frames.length > savedFrames ||
     (!!identity && identity !== savedIdentity) ||
-    (!!dtc && dtc !== savedDtc);
+    (!!dtc && dtc !== savedDtc) ||
+    (!!sensorSnapshot && sensorSnapshot !== savedSensors);
   function paint() {
     onSafetyChange();
     if (!host?.isConnected) return;
@@ -108,6 +111,11 @@ export function createConnectionController({
             : "Nenhum DTC nos serviços consultados."
         : "DTCs ainda não consultados.");
     host.querySelector("#live-dtc").textContent = dtcText;
+    const sensorElement = host.querySelector("#live-sensors");
+    if (sensorElement)
+      sensorElement.innerHTML = sensorSnapshot
+        ? `<div class="table-wrap"><table><thead><tr><th>Sensor</th><th>Leitura</th><th>Origem</th></tr></thead><tbody>${sensorSnapshot.sensors.map((reading) => `<tr><td>${h(reading.label)}</td><td data-sensor-value="${h(reading.key)}">${reading.status === "ok" ? h(shown(reading.value, reading.unit)) : reading.status === "unsupported" ? "Não oferecido pela ECU" : "Consulta sem leitura válida"}</td><td>PID ${h(reading.pid)} · ECU ${h(reading.ecuId)}${reading.observed_at_s == null ? "" : `<small class="table-small">${h(shown(reading.observed_at_s, "s após conexão"))}</small>`}</td></tr>`).join("")}</tbody></table></div><p class="notice">Consulta pontual: ${h(sensorSnapshot.acquired_at_utc)}. ${sensorSnapshot.errors.length ? `${sensorSnapshot.errors.length} consulta(s) sem leitura válida; detalhes no JSON.` : "Valores recebidos sem preenchimento de ausências."}</p>`
+        : '<p class="notice">Nenhum sensor adicional consultado. Use “Ler sensores” após conectar.</p>';
     const selected = !!session && phase === "connected";
     for (const button of host.querySelectorAll("[data-live-action]")) {
       const action = button.dataset.liveAction;
@@ -117,9 +125,11 @@ export function createConnectionController({
           : action === "disconnect"
             ? !session && phase !== "connecting"
             : action === "export"
-              ? !frames.length && !identity && !dtc
+              ? !frames.length && !identity && !dtc && !sensorSnapshot
               : action === "discard"
-                ? busy || collecting || (!frames.length && !identity && !dtc)
+                ? busy ||
+                  collecting ||
+                  (!frames.length && !identity && !dtc && !sensorSnapshot)
                 : action === "save"
                   ? busy || collecting || frames.length < 2
                   : !selected || busy || collecting;
@@ -221,6 +231,7 @@ export function createConnectionController({
       connection,
       identity,
       diagnostics: dtc,
+      sensor_snapshot: structuredClone(sensorSnapshot),
       diagnostic_error: diagnosticError || null,
       frames: structuredClone(frames),
       limitations:
@@ -296,6 +307,8 @@ export function createConnectionController({
       savedFrames = 0;
       savedIdentity = null;
       savedDtc = null;
+      savedSensors = null;
+      sensorSnapshot = null;
       identity = null;
       dtc = null;
       diagnosticError = "";
@@ -325,7 +338,16 @@ export function createConnectionController({
   }
   function page(vehicles, selectedVehicleId = "") {
     const caps = capabilities();
-    return `<div class="page-heading"><div><span class="eyebrow">OPERAÇÃO REAL · SOMENTE LEITURA</span><h1>Conexões e scanners</h1><p>ELM327 documentado para consultas OBD-II genéricas. Simulações ficam em uma área separada.</p></div><span class="badge">SEM GRAVAÇÃO NA ECU</span></div><div class="two-col"><section class="panel"><div class="panel-heading"><div><h2>Conectar adaptador</h2><p>A conexão só começa após sua escolha e a permissão do navegador.</p></div></div><form id="connect-form" class="padded-form"><label>Veículo<select name="vehicleId" required>${vehicles.map((v) => `<option value="${h(v.id)}" ${v.id === (vehicleId || selectedVehicleId) ? "selected" : ""}>${h(v.brand)} ${h(v.model)} ${v.year} · ${h(v.engine)}</option>`).join("")}</select></label><label>Scanner<select name="scanner"><option>ELM327 · comandos documentados</option></select></label><label>Conexão<select name="connectionType"><option value="serial" ${caps.serial ? "" : "disabled"}>USB / Bluetooth Classic · serial ${caps.serial ? "" : "(API indisponível)"}</option><option value="ble" ${caps.ble ? "" : "disabled"}>Bluetooth BLE · GATT ${caps.ble ? "" : "(API indisponível)"}</option></select></label><div class="form-grid"><label>Velocidade serial<select name="baudRate"><option>38400</option><option>115200</option><option>9600</option></select></label><label>ECU CAN de resposta (opcional)<input name="ecuId" placeholder="Ex.: 7E8, conforme aquisição" maxlength="3"><small>Sem seleção, é exigida uma única ECU respondente.</small></label></div><details class="mapping"><summary>Perfil BLE do fabricante</summary><p>Informe os UUIDs publicados pelo fabricante do adaptador. O ELM327 não define um perfil BLE universal.</p><label>Serviço GATT<input name="serviceUuid" placeholder="UUID do serviço" autocomplete="off"></label><label>Característica de envio<input name="writeUuid" placeholder="UUID de escrita no adaptador" autocomplete="off"></label><label>Característica de resposta<input name="notifyUuid" placeholder="UUID de notificações" autocomplete="off"></label></details><label class="checkbox-label"><input type="checkbox" name="realAcknowledged" required>Iniciar consultas reais de leitura no adaptador que eu selecionar. Nenhuma simulação será enviada ao veículo.</label><button class="btn primary" type="submit" ${!caps.serial && !caps.ble ? "disabled" : ""}>Escolher adaptador e conectar</button>${!caps.serial && !caps.ble ? '<p class="notice">Este navegador não oferece BLE/serial direto. No iOS, utilize análise CSV e uma integração nativa autorizada para acesso ao hardware. O componente Python atende as conexões documentadas no Windows.</p>' : ""}</form></section><section class="panel live-panel"><div class="panel-heading"><div><h2>Monitor de diagnóstico</h2><p id="live-status" role="status"></p></div><span class="badge">LEITURA REAL</span></div><div class="live-content"><p id="live-error" class="live-error" role="status"></p><div class="live-metrics"><div><small>Pedal</small><strong data-live-signal="pedal_pct">Não disponível</strong></div><div><small>Borboleta</small><strong data-live-signal="throttle_pct">Não disponível</strong></div><div><small>Rotação</small><strong data-live-signal="rpm">Não disponível</strong></div></div><p id="live-identification" class="notice"></p><p id="live-dtc" class="notice"></p><div class="live-actions"><button type="button" class="btn" data-live-action="identify">Identificar ECU</button><button type="button" class="btn" data-live-action="dtc">Consultar DTCs</button><button type="button" class="btn" data-live-action="sample">Ler uma amostra</button><button type="button" class="btn primary" data-live-action="start">Iniciar coleta</button><button type="button" class="btn" data-live-action="stop">Parar coleta</button><button type="button" class="btn" data-live-action="disconnect">Desconectar</button></div><p id="live-collection-state" class="notice"></p><p class="notice">Amostras desta sessão: <b id="live-count">0</b>. Ausência de PID é mostrada como indisponível, nunca como zero.</p><div class="live-actions"><button type="button" class="btn" data-live-action="export">Exportar registro real JSON</button><button type="button" class="btn primary" data-live-action="save">Salvar coleta para análise</button><button type="button" class="btn subtle" data-live-action="discard">Descartar sessão não salva</button></div><p class="notice">A análise do pedal exige todos os três sinais e pelo menos duas amostras. Registros parciais permanecem exportáveis, com erros e origem.</p></div></section></div><section class="panel"><div class="panel-heading"><div><h2>Scanners e integrações</h2><p>Um catálogo de veículos não comprova cobertura de uma ECU ou função.</p></div></div><div class="scanner-grid">${SCANNERS.map((s) => `<article class="scanner-card"><h3>${h(s.name)}</h3><span class="badge">${h(s.status)}</span><p>${h(s.description)}</p></article>`).join("")}</div></section><section class="panel compatibility-panel"><div class="panel-heading"><div><h2>Compatibilidade por plataforma</h2><p>A detecção do navegador e a documentação do adaptador determinam a conexão.</p></div></div><div class="table-wrap"><table><thead><tr><th>Plataforma</th><th>Conexão</th><th>Disponibilidade</th><th>Condições</th></tr></thead><tbody>${CONNECTION_MATRIX.map((row) => `<tr><td>${h(row.platform)}</td><td>${h(row.connection)}</td><td>${h(row.status)}</td><td class="wrappable-cell">${h(row.description)}</td></tr>`).join("")}</tbody></table></div></section><section class="panel backup-panel"><div><h2>Windows · USB, Classic, Wi-Fi e BLE</h2><p>O componente Python usa porta serial (USB/Classic), TCP para ELM327 Wi-Fi e BLE com UUIDs documentados. J2534 exige driver/SDK; Rasther III/S e outros scanners exigem integração autorizada. Não existe ponte de hardware instalada automaticamente pelo site.</p></div><a class="btn" href="./downloads/AUTO_ECU_LAB_Python.zip" download>Baixar componente Python</a></section>`;
+    return `<div class="page-heading"><div><span class="eyebrow">OPERAÇÃO REAL · SOMENTE LEITURA</span><h1>Conexões e scanners</h1><p>ELM327 documentado para consultas OBD-II genéricas. Simulações ficam em uma área separada.</p></div><span class="badge">SEM GRAVAÇÃO NA ECU</span></div><div class="two-col"><section class="panel"><div class="panel-heading"><div><h2>Conectar adaptador</h2><p>A conexão só começa após sua escolha e a permissão do navegador.</p></div></div><form id="connect-form" class="padded-form"><label>Veículo<select name="vehicleId" required>${vehicles.map((v) => `<option value="${h(v.id)}" ${v.id === (vehicleId || selectedVehicleId) ? "selected" : ""}>${h(v.brand)} ${h(v.model)} ${v.year} · ${h(v.engine)}</option>`).join("")}</select></label><label>Scanner<select name="scanner"><option>ELM327 · comandos documentados</option></select></label><label>Conexão<select name="connectionType"><option value="serial" ${caps.serial ? "" : "disabled"}>USB / Bluetooth Classic · serial ${caps.serial ? "" : "(API indisponível)"}</option><option value="ble" ${caps.ble ? "" : "disabled"}>Bluetooth BLE · GATT ${caps.ble ? "" : "(API indisponível)"}</option></select></label><div class="form-grid"><label>Velocidade serial<select name="baudRate"><option>38400</option><option>115200</option><option>9600</option></select></label><label>ECU CAN de resposta (opcional)<input name="ecuId" placeholder="Ex.: 7E8, conforme aquisição" maxlength="3"><small>Sem seleção, é exigida uma única ECU respondente.</small></label></div><details class="mapping"><summary>Perfil BLE do fabricante</summary><p>Informe os UUIDs publicados pelo fabricante do adaptador. O ELM327 não define um perfil BLE universal.</p><label>Serviço GATT<input name="serviceUuid" placeholder="UUID do serviço" autocomplete="off"></label><label>Característica de envio<input name="writeUuid" placeholder="UUID de escrita no adaptador" autocomplete="off"></label><label>Característica de resposta<input name="notifyUuid" placeholder="UUID de notificações" autocomplete="off"></label></details><label class="checkbox-label"><input type="checkbox" name="realAcknowledged" required>Iniciar consultas reais de leitura no adaptador que eu selecionar. Nenhuma simulação será enviada ao veículo.</label><button class="btn primary" type="submit" ${!caps.serial && !caps.ble ? "disabled" : ""}>Escolher adaptador e conectar</button>${!caps.serial && !caps.ble ? '<p class="notice">Este navegador não oferece BLE/serial direto. No iOS, utilize análise CSV e uma integração nativa autorizada para acesso ao hardware. O componente Python atende as conexões documentadas no Windows.</p>' : ""}</form></section><section class="panel live-panel"><div class="panel-heading"><div><h2>Monitor de diagnóstico</h2><p id="live-status" role="status"></p></div><span class="badge">LEITURA REAL</span></div><div class="live-content"><p id="live-error" class="live-error" role="status"></p><div class="live-metrics"><div><small>Pedal</small><strong data-live-signal="pedal_pct">Não disponível</strong></div><div><small>Borboleta</small><strong data-live-signal="throttle_pct">Não disponível</strong></div><div><small>Rotação</small><strong data-live-signal="rpm">Não disponível</strong></div></div><p id="live-identification" class="notice"></p><p id="live-dtc" class="notice"></p><div class="live-actions"><button type="button" class="btn" data-live-action="identify">Identificar ECU</button><button type="button" class="btn" data-live-action="dtc">Consultar DTCs</button><button type="button" class="btn" data-live-action="sensors">Ler sensores</button><button type="button" class="btn" data-live-action="sample">Ler uma amostra</button><button type="button" class="btn primary" data-live-action="start">Iniciar coleta</button><button type="button" class="btn" data-live-action="stop">Parar coleta</button><button type="button" class="btn" data-live-action="disconnect">Desconectar</button></div><section class="sensor-snapshot" aria-label="Sensores OBD-II"><h3>Sensores · consulta pontual</h3><div id="live-sensors" aria-live="polite"></div></section><p id="live-collection-state" class="notice"></p><p class="notice">Amostras desta sessão: <b id="live-count">0</b>. Ausência de PID é mostrada como indisponível, nunca como zero.</p><div class="live-actions"><button type="button" class="btn" data-live-action="export">Exportar registro real JSON</button><button type="button" class="btn primary" data-live-action="save">Salvar coleta para análise</button><button type="button" class="btn subtle" data-live-action="discard">Descartar sessão não salva</button></div><p class="notice">A análise do pedal exige todos os três sinais e pelo menos duas amostras. Registros parciais permanecem exportáveis, com erros e origem.</p></div></section></div><section class="panel"><div class="panel-heading"><div><h2>Adaptadores disponíveis</h2><p>Um catálogo de veículos não comprova cobertura de uma ECU ou função.</p></div></div><div class="scanner-grid">${SCANNERS.filter(
+      (scanner) => scanner.status === "implementado",
+    )
+      .map(
+        (s) =>
+          `<article class="scanner-card"><h3>${h(s.name)}</h3><span class="badge">${h(s.status)}</span><p>${h(s.description)}</p></article>`,
+      )
+      .join(
+        "",
+      )}</div></section><section class="panel compatibility-panel"><div class="panel-heading"><div><h2>Compatibilidade por plataforma</h2><p>A detecção do navegador e a documentação do adaptador determinam a conexão.</p></div></div><div class="table-wrap"><table><thead><tr><th>Plataforma</th><th>Conexão</th><th>Disponibilidade</th><th>Condições</th></tr></thead><tbody>${CONNECTION_MATRIX.map((row) => `<tr><td>${h(row.platform)}</td><td>${h(row.connection)}</td><td>${h(row.status)}</td><td class="wrappable-cell">${h(row.description)}</td></tr>`).join("")}</tbody></table></div></section><section class="panel backup-panel"><div><h2>Windows · USB, Classic, Wi-Fi e BLE</h2><p>O componente Python usa porta serial (USB/Classic), TCP para ELM327 Wi-Fi e BLE com UUIDs documentados. J2534 exige driver/SDK; Rasther III/S e outros scanners exigem integração autorizada. Não existe ponte de hardware instalada automaticamente pelo site.</p></div><a class="btn" href="./downloads/AUTO_ECU_LAB_Python.zip" download>Baixar componente Python</a></section>`;
   }
   function bind(element, vehicles) {
     scope?.abort();
@@ -374,6 +396,11 @@ export function createConnectionController({
                 }
               });
               break;
+            case "sensors":
+              await run(async () => {
+                sensorSnapshot = await session.readSensors();
+              });
+              break;
             case "sample":
               await run(() => sampleOnce());
               break;
@@ -409,6 +436,7 @@ export function createConnectionController({
                 connection: structuredClone(connection),
                 identity: structuredClone(identity),
                 diagnostic_result: structuredClone(dtc),
+                sensor_snapshot: structuredClone(sensorSnapshot),
                 diagnostic_error: diagnosticError || null,
                 channel_timestamps: frames.map((f) => ({
                   time_s: f.time_s,
@@ -430,6 +458,7 @@ export function createConnectionController({
                 savedFrames = frames.length;
                 savedIdentity = identity;
                 savedDtc = dtc;
+                savedSensors = sensorSnapshot;
               } finally {
                 busy = false;
                 paint();
@@ -455,6 +484,8 @@ export function createConnectionController({
               savedFrames = 0;
               savedIdentity = null;
               savedDtc = null;
+              sensorSnapshot = null;
+              savedSensors = null;
               paint();
               break;
             }
