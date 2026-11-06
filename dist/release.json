@@ -1,0 +1,12 @@
+{
+  "version": "2.2.0",
+  "cacheVersion": "v4",
+  "title": "Base real com origem documentada",
+  "changes": [
+    "Novas instalações começam vazias, sem medições ou estatísticas fictícias.",
+    "Base real com proveniência, exclusão de duplicatas e estatísticas locais por grupos compatíveis.",
+    "Exemplos antigos são arquivados no aparelho antes de saírem da base ativa; medições existentes são preservadas.",
+    "Repositório conectado identificado sem dataset disponível; nenhuma medição foi inventada ou importada dessa origem.",
+    "Atualização pelo mesmo endereço e ícone, preservando a identidade do aplicativo instalado."
+  ]
+}
